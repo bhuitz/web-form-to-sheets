@@ -1,0 +1,1407 @@
+<!-- ============================================================
+     EXAMPLE ATHLETIC CLUB — Inscripción (3 pagos separados)
+     Pegue este bloque en un componente HTML de Wix, en una página
+     OCULTA, por ejemplo /your-hidden-enroll-page.
+     Ocultar la página se configura en Wix — vea ENROLL-PAGE-SETUP.md
+
+     TEMPORADA 2026/27
+       Inicio ................ 25 de septiembre de 2026
+       Cierre ................ 7 y 8 de agosto de 2027
+       Marzo y abril ......... 2 sesiones en turf por semana, sin futsal
+       Mayo .................. se reanuda el futsal
+
+     PRECIOS (deben coincidir con el sitio principal)
+       Cuota de inscripción .. $50    pago único, no reembolsable
+       Temporada completa .... $1,499 un solo pago (ahorro de $301)
+       Mensual ............... $180/mes x 10 meses = $1,800
+                               se cobra el día de la compra y el mismo día
+                               de cada mes durante 10 meses
+       Media temporada ....... del 25 de septiembre de 2026 a febrero de 2027,
+                               cierra después del Reto de un Día — Invierno.
+                               Dos formas de pagar:
+                                 $180/mes x 5 meses = $900  (mismo calendario)
+                                 $799 en un solo pago (ahorro de $101)
+                               Cada opción tiene su propio enlace de pago:
+                               PAY_LINKS.half_monthly y PAY_LINKS.half_once
+       Kit de uniforme ....... $175   NO incluido en ningún paquete
+                                      (2 camisetas, 1 short, 1 par de medias)
+
+     FECHA LÍMITE DE PAGO
+       Se configura en CONFIG.PAYMENT_DEADLINE (formato AAAA-MM-DD).
+       Mientras esté vacía, la frase de la fecha límite no se muestra.
+       PAYMENT DEADLINE: set CONFIG.PAYMENT_DEADLINE (YYYY-MM-DD).
+       While it is empty, the deadline sentence stays hidden.
+
+     Esta página calcula montos; NO cobra nada. Los pagos se realizan
+     en los enlaces de Vagaro.
+     ============================================================ -->
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800;900&family=Roboto+Mono:wght@400;500;700&display=swap');
+
+#fsa-pay{
+    --black:#111110; --white:#ffffff;
+    --gray-50:#faf7f2; --gray-200:#ddd8ce; --gray-400:#a6a29a;
+    --gray-600:#6f6b64; --gray-800:#2c2a26; --line:#d8d2c6;
+    --burgundy:#7a1f33; --burgundy-dark:#5c1626;
+    --yellow:#f5c542; --yellow-dark:#d9a91f; --yellow-tint:#fdf6e0;
+    --green:#1f7a4d; --green-tint:#e8f5ee;
+    --bg:#f7f2e8; --bg-warm:#f2ebdd; --bg-card:#fffdf9;
+    --font-display:'Anton',Impact,'Haettenschweiler','Franklin Gothic Bold','Arial Black',sans-serif;
+    --font-body:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;
+    --font-mono:'Roboto Mono', monospace;
+  }
+#fsa-pay *{box-sizing:border-box;}
+#fsa-pay{font-family:var(--font-body);color:var(--black);background:var(--bg);line-height:1.55;
+    -webkit-text-size-adjust:100%;overflow-x:clip;padding:0 0 60px;}
+#fsa-pay p,#fsa-pay li,#fsa-pay h1,#fsa-pay h2,#fsa-pay h3,#fsa-pay h4{overflow-wrap:break-word;}
+#fsa-pay h1,#fsa-pay h2,#fsa-pay h3,#fsa-pay h4{font-family:var(--font-display);margin:0;text-transform:uppercase;font-weight:700;}
+#fsa-pay p{margin:0;}
+#fsa-pay .wrap{max-width:860px;margin:0 auto;padding:0 24px;}
+
+#fsa-pay .pay-head{background:radial-gradient(ellipse 60% 80% at 88% 10%, rgba(245,197,66,0.28), transparent 60%),
+      linear-gradient(165deg,var(--bg-card),var(--bg-warm));
+    border-top:5px solid var(--yellow);border-bottom:1px solid var(--line);padding:48px 0 40px;margin-bottom:34px;}
+#fsa-pay .pay-brand{display:inline-block;font-family:var(--font-display);font-size:20px;font-weight:700;
+    letter-spacing:0.04em;text-transform:uppercase;text-decoration:none;color:var(--black);margin-bottom:18px;white-space:nowrap;}
+#fsa-pay .pay-brand span:last-child{color:var(--burgundy);}
+#fsa-pay .head-row{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap;}
+#fsa-pay .eyebrow{font-family:var(--font-mono);font-size:12px;letter-spacing:0.16em;text-transform:uppercase;
+    color:var(--gray-600);display:flex;align-items:center;gap:10px;}
+#fsa-pay .eyebrow::before{content:"";width:22px;height:3px;background:var(--burgundy);border-radius:2px;}
+#fsa-pay .pay-head h1{font-size:clamp(32px,5.5vw,52px);line-height:1;margin:16px 0 14px;}
+#fsa-pay .pay-head p{max-width:62ch;color:var(--gray-800);}
+
+
+#fsa-pay .progress{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px;}
+#fsa-pay .pstep{text-align:center;padding:12px 6px;border-radius:10px;background:var(--bg-warm);
+    border:1px solid var(--line);font-family:var(--font-mono);font-size:10.5px;letter-spacing:0.05em;
+    text-transform:uppercase;color:var(--gray-600);}
+#fsa-pay .pstep b{display:block;font-family:var(--font-display);font-size:15px;letter-spacing:0;margin-bottom:2px;color:var(--gray-800);}
+#fsa-pay .pstep.active{background:var(--burgundy);border-color:var(--burgundy);color:rgba(255,255,255,0.8);}
+#fsa-pay .pstep.active b{color:var(--yellow);}
+#fsa-pay .pstep.done{background:var(--green-tint);border-color:var(--green);color:var(--green);}
+#fsa-pay .pstep.done b{color:var(--green);}
+
+/* running cost summary */
+#fsa-pay .summary{background:var(--bg-card);border:1px solid var(--line);border-left:5px solid var(--burgundy);
+    border-radius:0 12px 12px 0;padding:18px 22px;margin-bottom:26px;}
+#fsa-pay .summary h3{font-size:15px;color:var(--burgundy);margin-bottom:12px;}
+#fsa-pay .sline{display:flex;justify-content:space-between;gap:14px;padding:6px 0;font-size:14px;color:var(--gray-800);}
+#fsa-pay .sline .sv{font-family:var(--font-mono);font-size:13.5px;white-space:nowrap;}
+#fsa-pay .sline.tot{border-top:2px solid var(--burgundy);margin-top:8px;padding-top:12px;}
+#fsa-pay .sline.tot .sl{font-family:var(--font-display);font-size:16px;text-transform:uppercase;}
+#fsa-pay .sline.tot .sv{font-family:var(--font-display);font-size:22px;color:var(--burgundy);}
+#fsa-pay .summary .fine{font-size:12px;color:var(--gray-600);margin-top:10px;}
+
+#fsa-pay .step{background:var(--bg-card);border:1px solid var(--line);border-radius:16px;
+    padding:28px 26px;margin-bottom:20px;box-shadow:0 2px 14px rgba(92,22,38,0.05);}
+#fsa-pay .step.locked{opacity:.55;}
+#fsa-pay .step.complete{border-color:var(--green);background:var(--green-tint);}
+#fsa-pay .step h2{font-size:20px;color:var(--burgundy);margin-bottom:6px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+#fsa-pay .step.complete h2{color:var(--green);}
+#fsa-pay .step h2 .n{background:var(--burgundy);color:var(--white);width:30px;height:30px;border-radius:50%;
+    display:inline-flex;align-items:center;justify-content:center;font-size:15px;flex:0 0 auto;}
+#fsa-pay .step.complete h2 .n{background:var(--green);}
+#fsa-pay .step h2 .amt{margin-left:auto;font-family:var(--font-display);font-size:26px;color:var(--burgundy);}
+#fsa-pay .step.complete h2 .amt{color:var(--green);}
+#fsa-pay .step .hint{font-size:13.5px;color:var(--gray-600);margin:0 0 18px 42px;}
+@media(max-width:560px){#fsa-pay .step .hint{margin-left:0;} #fsa-pay .step h2 .amt{margin-left:0;width:100%;}}
+#fsa-pay .lock-msg{font-family:var(--font-mono);font-size:11px;letter-spacing:0.05em;text-transform:uppercase;
+    color:var(--gray-600);background:var(--bg-warm);border-radius:8px;padding:9px 13px;display:inline-block;}
+
+#fsa-pay .fieldrow{display:grid;grid-template-columns:1fr;gap:16px;}
+@media(min-width:600px){#fsa-pay .fieldrow.two{grid-template-columns:1fr 1fr;}
+  #fsa-pay .fieldrow.three{grid-template-columns:1fr 1fr 1fr;}}
+#fsa-pay label.lbl{display:block;font-family:var(--font-mono);font-size:11px;letter-spacing:0.06em;
+    text-transform:uppercase;color:var(--gray-600);margin-bottom:7px;}
+#fsa-pay input[type=text],#fsa-pay input[type=email],#fsa-pay input[type=number],#fsa-pay select{
+    width:100%;padding:12px 14px;border:1px solid var(--gray-200);border-radius:8px;background:var(--white);
+    font-family:var(--font-body);font-size:16px;color:var(--black);}
+#fsa-pay input:focus,#fsa-pay select:focus{outline:none;border-color:var(--burgundy);box-shadow:0 0 0 3px var(--yellow-tint);}
+
+#fsa-pay .opt{display:flex;gap:14px;align-items:flex-start;border:2px solid var(--gray-200);
+    border-radius:12px;padding:18px;cursor:pointer;margin-bottom:12px;}
+#fsa-pay .opt:has(input:checked){border-color:var(--burgundy);background:var(--yellow-tint);}
+#fsa-pay .opt input{margin-top:3px;accent-color:var(--burgundy);width:20px;height:20px;flex:0 0 auto;}
+#fsa-pay .opt .t{font-family:var(--font-display);font-size:17px;text-transform:uppercase;}
+#fsa-pay .opt .d{font-size:13.5px;color:var(--gray-600);margin-top:4px;}
+#fsa-pay .opt .amt{margin-left:auto;font-family:var(--font-display);font-size:22px;color:var(--burgundy);white-space:nowrap;padding-left:10px;}
+#fsa-pay .opt .amt small{display:block;font-family:var(--font-mono);font-size:10.5px;color:var(--gray-600);text-align:right;}
+
+/* --- media temporada: sub-opciones y dos botones de pago --- */
+#fsa-pay .half-box{background:var(--yellow-tint);border:1px dashed var(--yellow-dark);border-radius:12px;
+    padding:16px 18px;margin:0 0 12px;}
+#fsa-pay .half-box h4{font-family:var(--font-display);font-size:14px;text-transform:uppercase;
+    letter-spacing:0.04em;color:var(--burgundy);margin:0 0 6px;}
+#fsa-pay .half-box .half-hint{font-size:13px;color:var(--gray-600);margin:0 0 14px;line-height:1.6;}
+#fsa-pay .opt.sub{background:var(--white);border-width:2px;padding:14px;margin-bottom:10px;}
+#fsa-pay .opt.sub:last-of-type{margin-bottom:0;}
+#fsa-pay .opt.sub .t{font-size:15px;}
+#fsa-pay .opt.sub .amt{font-size:20px;}
+#fsa-pay .half-links{display:grid;gap:12px;}
+@media(min-width:640px){#fsa-pay .half-links{grid-template-columns:1fr 1fr;}}
+#fsa-pay .half-links .btn{margin-top:0;width:100%;text-align:center;}
+#fsa-pay .btn.ghost{background:var(--white);color:var(--burgundy);border:2px solid var(--burgundy);}
+#fsa-pay .btn.ghost:hover{background:var(--burgundy);color:var(--white);}
+
+#fsa-pay .kitbox{border:2px solid var(--burgundy);background:var(--yellow-tint);border-radius:12px;
+    padding:18px;margin-bottom:22px;display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;}
+#fsa-pay .kitbox .t{font-family:var(--font-display);font-size:17px;text-transform:uppercase;}
+#fsa-pay .kitbox .d{font-size:13.5px;color:var(--gray-800);margin-top:4px;}
+#fsa-pay .kitbox .amt{margin-left:auto;font-family:var(--font-display);font-size:22px;color:var(--burgundy);white-space:nowrap;}
+#fsa-pay .kitbox .amt small{display:block;font-family:var(--font-mono);font-size:10.5px;color:var(--gray-600);text-align:right;}
+@media(max-width:560px){#fsa-pay .kitbox .amt{margin-left:0;}}
+
+
+#fsa-pay .extras-note{background:var(--bg-warm);border:1px solid var(--line);border-left:4px solid var(--yellow);
+    border-radius:0 12px 12px 0;padding:18px 20px;margin-top:26px;}
+#fsa-pay .extras-note h4{font-family:var(--font-display);font-size:15px;text-transform:uppercase;color:var(--burgundy);margin:0 0 8px;}
+#fsa-pay .extras-note p{font-size:13.5px;color:var(--gray-800);margin:0;line-height:1.6;}
+#fsa-pay .runtotal{display:flex;justify-content:space-between;align-items:baseline;gap:14px;
+    margin-top:14px;padding-top:14px;border-top:2px solid var(--burgundy);}
+#fsa-pay .runtotal .tl{font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray-600);}
+#fsa-pay .runtotal .tv{font-family:var(--font-display);font-size:30px;color:var(--burgundy);line-height:1;}
+
+#fsa-pay .btn{display:inline-flex;align-items:center;justify-content:center;
+    font-family:var(--font-mono);font-size:13px;letter-spacing:0.06em;text-transform:uppercase;
+    padding:15px 24px;min-height:50px;border:2px solid var(--burgundy);background:var(--burgundy);
+    color:var(--white);border-radius:10px;cursor:pointer;text-decoration:none;font-weight:700;margin-top:18px;}
+#fsa-pay .btn:hover{background:var(--burgundy-dark);border-color:var(--burgundy-dark);}
+#fsa-pay .btn[aria-disabled="true"]{opacity:.45;cursor:not-allowed;}
+#fsa-pay .paid-row{display:flex;gap:12px;align-items:flex-start;margin-top:18px;padding-top:16px;border-top:1px dashed var(--line);}
+#fsa-pay .paid-row input{margin-top:3px;accent-color:var(--green);width:22px;height:22px;flex:0 0 auto;}
+#fsa-pay .paid-row label{font-size:13.5px;color:var(--gray-800);}
+
+#fsa-pay .allset{display:none;background:var(--green-tint);border:2px solid var(--green);border-radius:16px;padding:30px 28px;}
+#fsa-pay .allset h2{color:var(--green);font-size:22px;margin-bottom:10px;}
+#fsa-pay .allset p{font-size:14.5px;color:var(--gray-800);}
+
+#fsa-pay .notice{position:relative;z-index:1;background:var(--bg-card);border:1px solid var(--line);
+    border-left:5px solid var(--yellow);border-radius:0 12px 12px 0;padding:20px 22px;margin-top:26px;}
+#fsa-pay .notice strong{color:var(--burgundy);}
+#fsa-pay .notice p{font-size:13.5px;color:var(--gray-800);}
+#fsa-pay .notice p + p{margin-top:12px;}
+#fsa-pay .setup-note{background:var(--yellow-tint);border:1px dashed var(--yellow-dark);border-radius:10px;
+    padding:16px 18px;font-family:var(--font-mono);font-size:12px;line-height:1.7;color:var(--gray-800);margin-top:26px;}
+#fsa-pay .backlink{display:inline-block;margin-top:26px;position:relative;z-index:1;font-family:var(--font-mono);
+    font-size:12px;letter-spacing:0.06em;text-transform:uppercase;color:var(--burgundy);text-decoration:none;border-bottom:1px solid var(--yellow);}
+@media(max-width:799px){#fsa-pay .wrap{padding:0 18px;} #fsa-pay .step{padding:22px 18px;}}
+
+/* --- calendario de cobros del paquete mensual --- */
+#fsa-pay .cobros-box{background:var(--bg-warm);border:1px solid var(--line);border-left:4px solid var(--burgundy);
+    border-radius:0 12px 12px 0;padding:18px 20px;margin:6px 0 4px;}
+#fsa-pay .cobros-box h4{font-family:var(--font-display);font-size:15px;text-transform:uppercase;
+    color:var(--burgundy);margin:0 0 8px;}
+#fsa-pay .cobros-hint{font-size:13px;color:var(--gray-600);margin:0 0 14px;line-height:1.6;}
+#fsa-pay .cobros-lista{list-style:none;margin:16px 0 0;padding:0;border-top:1px solid var(--line);}
+#fsa-pay .cobros-lista li{display:flex;justify-content:space-between;gap:12px;
+    padding:8px 0;border-bottom:1px solid var(--line);font-size:13.5px;color:var(--gray-800);}
+#fsa-pay .cobros-lista .cf{font-family:var(--font-body);}
+#fsa-pay .cobros-lista .cm{font-family:var(--font-mono);font-size:13px;white-space:nowrap;color:var(--burgundy);}
+#fsa-pay .cobros-total{font-family:var(--font-display);font-size:16px;text-transform:uppercase;
+    color:var(--burgundy);margin-top:12px;}
+#fsa-pay .cobros-aviso{font-size:12.5px;color:var(--gray-600);margin-top:8px;line-height:1.6;}
+#fsa-pay input[type=date]{width:100%;padding:12px 14px;border:1px solid var(--gray-200);border-radius:8px;
+    background:var(--white);font-family:var(--font-body);font-size:16px;color:var(--black);}
+
+/* --- selector de idioma / language switch --- */
+#fsa-pay .lang-switch{display:inline-flex;align-items:center;flex:0 0 auto;
+    border:1px solid var(--line);border-radius:999px;background:var(--bg-card);padding:2px;}
+#fsa-pay .lang-btn{font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:0.05em;
+    text-transform:uppercase;padding:7px 13px;min-height:32px;border:none;background:transparent;
+    color:var(--gray-600);border-radius:999px;cursor:pointer;line-height:1;white-space:nowrap;
+    transition:background .15s ease,color .15s ease;}
+#fsa-pay .lang-btn:hover{color:var(--burgundy);}
+#fsa-pay .lang-btn[aria-pressed="true"]{background:var(--burgundy);color:var(--white);}
+#fsa-pay .lang-btn:focus-visible{outline:3px solid var(--yellow);outline-offset:2px;}
+#fsa-pay .lang-btn .lg-abbr{display:none;}
+@media(max-width:560px){
+  #fsa-pay .lang-btn .lg-full{display:none;}
+  #fsa-pay .lang-btn .lg-abbr{display:inline;}
+  #fsa-pay .lang-btn{padding:7px 11px;}
+}
+</style>
+
+<div id="fsa-pay">
+
+  <div class="pay-head">
+    <div class="wrap">
+      <a class="pay-brand" href="/"><span style="color:var(--yellow);">&#9733;</span> EXAMPLE <span>ATHLETIC CLUB</span></a>
+      <div class="head-row">
+        <div data-i18n="e1" class="eyebrow">Proceso de inscripción</div>
+        <div class="lang-switch" role="group" aria-label="Idioma">
+          <button type="button" class="lang-btn" data-lang="en" aria-pressed="false"><span class="lg-full">English</span><span class="lg-abbr">EN</span></button>
+          <button type="button" class="lang-btn" data-lang="es" aria-pressed="true"><span class="lg-full">Español</span><span class="lg-abbr">ES</span></button>
+        </div>
+      </div>
+      <h1 data-i18n="e2">Complete su inscripción</h1>
+      <p data-i18n="e3">Tres pagos separados, en orden. Pague primero la cuota de inscripción para asegurar el cupo, luego elija su paquete y después compre el kit de uniforme y confirme las tallas. Cada uno abre un pago seguro en una pestaña nueva. <strong class="deadline-note">Su pago debe completarse antes del <span class="deadline-date"></span>.</strong></p>
+    </div>
+  </div>
+
+  <div class="wrap">
+
+    <div class="progress">
+      <div data-i18n="e4" class="pstep active" id="p1"><b>1</b> Inscripción</div>
+      <div data-i18n="e5" class="pstep" id="p2"><b>2</b> Paquete</div>
+      <div data-i18n="e6" class="pstep" id="p3"><b>3</b> Uniforme</div>
+    </div>
+
+    <div class="summary">
+      <h3 data-i18n="e7">Lo que va a pagar</h3>
+      <div class="sline"><span data-i18n="e8" class="sl">Cuota de inscripción &mdash; pago único, no reembolsable</span><span class="sv" id="s-reg">$50</span></div>
+      <div class="sline"><span class="sl" id="s-pkg-label">Paquete de temporada &mdash; Temporada completa</span><span class="sv" id="s-pkg">$1,499</span></div>
+      <div class="sline"><span data-i18n="e9" class="sl">Kit de uniforme &mdash; dos camisetas, short y medias</span><span class="sv" id="s-uni">$175</span></div>
+      <div class="sline tot"><span data-i18n="e10" class="sl">Total</span><span class="sv" id="s-total">$1,724</span></div>
+      <p data-i18n="e11" class="fine">El kit de uniforme no está incluido en ningún paquete. Los Nacionales, los Regionales y los costos de viaje se cobran aparte.</p>
+    </div>
+
+    <div class="notice" style="margin-top:0;margin-bottom:26px;">
+      <p data-i18n="e12"><strong>Temporada 2026/27.</strong> La temporada empieza el <strong>25 de septiembre de 2026</strong> y termina el <strong>7 y 8 de agosto de 2027</strong>. El entrenamiento es dos veces por semana, viernes y domingos de 5:00 a 8:00 p.m. En <strong>marzo y abril</strong> las dos sesiones semanales son en <strong>turf</strong> y <strong>no hay futsal</strong>; el <strong>futsal se reanuda en mayo</strong>.</p>
+    </div>
+
+    <div class="step" id="step0">
+      <h2 data-i18n="e14"><span class="n">&bull;</span> Datos del jugador</h2>
+      <p data-i18n="e15" class="hint">Para asociar cada pago con el jugador correcto.</p>
+      <div class="fieldrow two">
+        <div>
+          <label data-i18n="e16" class="lbl" for="pay-player">Nombre completo del jugador</label>
+          <input id="pay-player" type="text" autocomplete="name" maxlength="100" inputmode="text">
+        </div>
+        <div>
+          <label data-i18n="e17" class="lbl" for="pay-agegroup">Categoría</label>
+          <select id="pay-agegroup">
+            <option data-i18n="e18" value="">Seleccione la categoría</option>
+            <option value="U9">U9</option><option value="U11">U11</option>
+            <option value="U12">U12</option><option value="U13">U13</option>
+            <option value="U14">U14</option><option value="U15">U15</option>
+            <option data-i18n="e19" value="Secundaria">Secundaria</option>
+          </select>
+        </div>
+      </div>
+      <div class="fieldrow two" style="margin-top:16px;">
+        <div>
+          <label data-i18n="e20" class="lbl" for="pay-parent">Nombre del padre, madre o apoderado</label>
+          <input id="pay-parent" type="text" autocomplete="name" maxlength="100" inputmode="text">
+        </div>
+        <div>
+          <label data-i18n="e21" class="lbl" for="pay-email">Correo electrónico</label>
+          <input id="pay-email" type="email" autocomplete="email" maxlength="254" inputmode="email">
+        </div>
+      </div>
+    </div>
+
+    <div class="step" id="step1">
+      <h2 data-i18n="e22"><span class="n">1</span> Cuota de inscripción <span class="amt" id="amt-reg">$50</span></h2>
+      <p data-i18n="e23" class="hint">Pago único, no reembolsable, por jugador. <strong>Esto asegura el cupo en el equipo</strong> &mdash; páguela primero. El festival fue gratuito.</p>
+      <a class="btn" id="btn-reg" href="#" target="_blank" rel="noopener" aria-disabled="true">Pagar la cuota de inscripción</a>
+      <div class="paid-row">
+        <input type="checkbox" id="done-reg">
+        <label for="done-reg" id="lbl-done-reg">Ya realicé el pago de inscripción de $50</label>
+      </div>
+    </div>
+
+    <div class="step locked" id="step2">
+      <h2 data-i18n="e24"><span class="n">2</span> Paquete de temporada <span class="amt" id="amt-pkg">$1,499</span></h2>
+      <p data-i18n="e25" class="hint">Los tres incluyen <strong>entrenamiento dos veces por semana</strong> &mdash; una sesión semanal en turf enfocada en el desarrollo técnico y una <strong>sesión de futsal por semana</strong>. En marzo y abril las dos sesiones son en turf y no hay futsal; el futsal se reanuda en mayo. El kit de uniforme se paga aparte en el paso 3. La <strong>media temporada</strong> va del 25 de septiembre de 2026 hasta febrero de 2027 y cierra después del Reto de un Día &mdash; Invierno. <strong class="deadline-note">Su pago del paquete debe completarse antes del <span class="deadline-date"></span>.</strong></p>
+      <div id="pkg-lock"><span data-i18n="e26" class="lock-msg">Complete primero el paso 1</span></div>
+      <div id="pkg-body" style="display:none;">
+        <label class="opt">
+          <input type="radio" name="pkg" value="season" checked>
+          <span><span data-i18n="e27" class="t">Temporada completa</span>
+            <span class="d" id="d-season">Un solo pago que cubre toda la temporada. Ahorra $301 frente al pago mensual.</span></span>
+          <span data-i18n="e28" class="amt">$1,499<small>un solo pago</small></span>
+        </label>
+        <label class="opt">
+          <input type="radio" name="pkg" value="monthly">
+          <span><span data-i18n="e29" class="t">Mensual</span>
+            <span class="d" id="d-monthly">$180 se cobra el mismo día en que usted compra el paquete y luego el mismo día de cada mes durante 10 meses &mdash; $1,800 en total. Puede cancelar cuando quiera desde su cuenta de Vagaro.</span></span>
+          <span data-i18n="e30" class="amt">$180<small>por mes</small></span>
+        </label>
+
+        <label class="opt">
+          <input type="radio" name="pkg" value="half">
+          <span><span data-i18n="e60" class="t">Media temporada</span>
+            <span class="d" id="d-half">Del 25 de septiembre de 2026 a febrero de 2027 &mdash; cierra después del Reto de un Día &mdash; Invierno. Dos formas de pagar: $180 al mes durante 5 meses ($900 en total) o $799 en un solo pago.</span></span>
+          <span data-i18n="e61" class="amt">$799<small>o $180 al mes</small></span>
+        </label>
+
+        <div class="half-box" id="half-box" style="display:none;">
+          <h4 data-i18n="e62">Elija cómo pagar la media temporada</h4>
+          <p data-i18n="e63" class="half-hint">Las dos opciones cubren exactamente lo mismo &mdash; solo cambia la forma de pagar. Elija una y use su botón de abajo.</p>
+
+          <label class="opt sub">
+            <input type="radio" name="halfplan" value="half_monthly" checked>
+            <span><span data-i18n="e64" class="t">Cinco pagos mensuales</span>
+              <span class="d" id="d-half-monthly">$180 se cobra el mismo día en que usted compra el paquete y luego el mismo día de cada mes durante 5 meses &mdash; $900 en total. Puede cancelar cuando quiera desde su cuenta de Vagaro.</span></span>
+            <span data-i18n="e65" class="amt">$180<small>al mes x 5</small></span>
+          </label>
+
+          <label class="opt sub">
+            <input type="radio" name="halfplan" value="half_once">
+            <span><span data-i18n="e66" class="t">Pago único</span>
+              <span class="d" id="d-half-once">Un solo pago que cubre toda la media temporada. Ahorra $101 frente al pago mes a mes.</span></span>
+            <span data-i18n="e67" class="amt">$799<small>un solo pago</small></span>
+          </label>
+        </div>
+
+        <div class="cobros-box" id="cobros-box" style="display:none;">
+          <h4 data-i18n="e31">Su calendario de cobros</h4>
+          <p data-i18n="e32" class="cobros-hint">El paquete mensual se cobra el mismo día en que usted lo compra y luego el mismo día de cada mes. Indique la fecha en que hará la compra y le mostramos las 10 fechas exactas.</p>
+          <div class="fieldrow two">
+            <div>
+              <label data-i18n="e33" class="lbl" for="fecha-compra">Fecha de compra del paquete</label>
+              <input id="fecha-compra" type="date">
+            </div>
+          </div>
+          <ol id="lista-cobros" class="cobros-lista"></ol>
+          <p class="cobros-total" id="cobros-total"></p>
+          <p class="cobros-aviso" id="cobros-aviso"></p>
+        </div>
+
+        <a class="btn" id="btn-pkg" href="#" target="_blank" rel="noopener">Pagar el paquete</a>
+
+        <!-- Media temporada: DOS enlaces de pago, uno por cada forma de pagar.
+             Los enlaces se configuran en CONFIG.PAY_LINKS.half_monthly y
+             CONFIG.PAY_LINKS.half_once, más abajo en el script.
+             Half season: TWO payment links, one per payment option. Set them in
+             CONFIG.PAY_LINKS.half_monthly and CONFIG.PAY_LINKS.half_once. -->
+        <div class="half-links" id="half-links" style="display:none;">
+          <a class="btn" id="btn-half-monthly" href="#" target="_blank" rel="noopener">Pagar la media temporada mes a mes</a>
+          <a class="btn ghost" id="btn-half-once" href="#" target="_blank" rel="noopener">Pagar la media temporada en un solo pago</a>
+        </div>
+
+        <div class="paid-row">
+          <input type="checkbox" id="done-pkg">
+          <label data-i18n="e34" for="done-pkg">Ya realicé el pago del paquete</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="step locked" id="step3">
+      <h2 data-i18n="e35"><span class="n">3</span> Kit de uniforme <span class="amt" id="amt-uni">$175</span></h2>
+      <p data-i18n="e36" class="hint">El kit tiene <strong>un costo aparte de $175</strong>, no está incluido en ningún paquete. Elija sus tallas abajo y luego pague.</p>
+      <div id="uni-lock"><span data-i18n="e37" class="lock-msg">Complete primero el paso 2</span></div>
+      <div id="uni-body" style="display:none;">
+
+        <div class="kitbox">
+          <span><span data-i18n="e38" class="t">Kit del equipo</span>
+            <span data-i18n="e39" class="d">Dos camisetas de juego, un short y un par de medias. Obligatorio para todo jugador inscrito.</span></span>
+          <span data-i18n="e40" class="amt">$175<small>pago único</small></span>
+        </div>
+
+        <div class="fieldrow three">
+          <div><label data-i18n="e41" class="lbl" for="sz-shirt">Talla de camiseta</label><select id="sz-shirt"></select></div>
+          <div><label data-i18n="e42" class="lbl" for="sz-shorts">Talla de short</label><select id="sz-shorts"></select></div>
+          <div><label data-i18n="e43" class="lbl" for="sz-socks">Talla de medias</label><select id="sz-socks"></select></div>
+        </div>
+        <p data-i18n="e44" class="hint" style="margin:10px 0 0;">Las dos camisetas del kit se hacen en la talla que elija. <strong>Si hay algún problema de talla, escriba a contact@example.com</strong> y lo resolveremos con usted.</p>
+
+        <div class="extras-note">
+          <h4 data-i18n="e45">¿Necesita piezas adicionales?</h4>
+          <p data-i18n="e46">Hay camisetas, shorts, medias y camisetas de arquero adicionales al kit estándar. Para pedir cualquiera de ellas, escriba a <a href="mailto:contact@example.com" style="color:var(--burgundy);border-bottom:1px solid var(--yellow);text-decoration:none;">contact@example.com</a> y le confirmaremos precios y disponibilidad antes de hacer el pedido de la temporada.</p>
+        </div>
+
+        <div class="runtotal">
+          <span data-i18n="e47" class="tl">Total del uniforme</span>
+          <span class="tv" id="uni-total">$175</span>
+        </div>
+
+        <a class="btn" id="btn-uni" href="#" target="_blank" rel="noopener">Pagar el uniforme</a>
+
+        <div style="margin-top:22px;padding-top:18px;border-top:2px solid var(--burgundy);">
+          <p data-i18n="e48" class="hint" style="margin:0 0 12px;"><strong>Último paso:</strong> envíe su paquete y sus tallas al club para poder hacer el pedido del uniforme.</p>
+          <button type="button" class="btn" id="btn-save" style="margin-top:0;">Enviar mis datos al club</button>
+          <p id="save-status" style="font-size:13.5px;margin-top:12px;color:var(--gray-600);"></p>
+        </div>
+
+        <div class="paid-row">
+          <input type="checkbox" id="done-uni">
+          <label data-i18n="e49" for="done-uni">Ya pagué el uniforme y envié mis tallas</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="allset" id="allset">
+      <h2 data-i18n="e50">Los tres pagos están completos</h2>
+      <p data-i18n="e51">Gracias. Confirmaremos el cupo y el pedido del uniforme por correo. La temporada va del 25 de septiembre de 2026 al 7 y 8 de agosto de 2027, con entrenamiento los viernes y domingos de 5:00 a 8:00 p.m. — una sesión de futsal y una en turf. En marzo y abril las dos sesiones son en turf y no hay futsal; el futsal se reanuda en mayo. Le enviaremos los detalles cuando se confirmen los lugares. Cualquier consulta: <a href="mailto:contact@example.com" style="color:var(--burgundy);">contact@example.com</a></p>
+    </div>
+
+    <div class="notice">
+      <p data-i18n="e52"><strong>¿Por qué tres pagos?</strong> La cuota de inscripción asegura el cupo de inmediato, el paquete se cobra aparte porque la opción mensual es recurrente, y el uniforme se paga al final para confirmar las tallas antes de enviar el pedido al proveedor. Separarlos hace que cada monto sea exacto y que nada se cobre dos veces.</p>
+      <p data-i18n="e53"><strong>Tallas.</strong> Las tallas se usan para hacer el pedido de la temporada, por lo que los cambios posteriores dependen de la disponibilidad. Si algo no le queda, escriba a <a href="mailto:contact@example.com" style="color:var(--burgundy);">contact@example.com</a> y lo resolveremos junto con usted.</p>
+    </div>
+
+    <a data-i18n="e54" class="backlink" href="/"><span aria-hidden="true">&larr;</span> <span>Volver a la página principal</span></a>
+
+  </div>
+</div>
+
+<script>
+/* ===== SISTEMA BILINGÜE / BILINGUAL SYSTEM ================================
+   English is the default. The Spanish copy is not duplicated here: it is read
+   straight out of the existing markup at load time (every element carrying
+   data-i18n / data-i18n-ph / data-i18n-al is snapshotted). Only the English
+   strings live in this dictionary, plus the Spanish strings that are written
+   by script and so have no markup to read from (ES_JS).
+   ========================================================================= */
+var PAY_I18N = (function(){
+
+  var EN = {
+  e1:'Enrollment process', e2:'Complete your enrollment',
+  e3:'Three separate payments, in order. Pay the registration fee first to secure the spot, then choose your package, then buy the uniform kit and confirm sizes. Each one opens a secure payment in a new tab. <strong class="deadline-note">Your payment must be completed by <span class="deadline-date"></span>.</strong>',
+  e4:'<b>1</b> Registration', e5:'<b>2</b> Package', e6:'<b>3</b> Uniform',
+  e7:'What you will pay',
+  e8:'Registration fee &mdash; one-time, non-refundable',
+  e9:'Uniform kit &mdash; two jerseys, shorts and socks',
+  e10:'Total',
+  e11:'The uniform kit is not included in any package. Nationals, Regionals and travel costs are billed separately.',
+  e12:'<strong>2026/27 Season.</strong> The season starts on <strong>September 25, 2026</strong> and ends on <strong>August 7 and 8, 2027</strong>. Training is twice a week, Fridays and Sundays from 5:00 to 8:00 p.m. In <strong>March and April</strong> both weekly sessions are on <strong>turf</strong> and there is <strong>no futsal</strong>; <strong>futsal resumes in May</strong>.',
+  e13:'',
+  e14:'<span class="n">&bull;</span> Player details',
+  e15:'So each payment is matched to the right player.',
+  e16:'Player\'s full name', e17:'Age group', e18:'Select the age group', e19:'High School',
+  e20:'Parent or guardian name', e21:'Email address',
+  e22:'<span class="n">1</span> Registration fee <span class="amt" id="amt-reg">$50</span>',
+  e23:'One-time, non-refundable, per player. <strong>This secures the spot on the team</strong> &mdash; pay it first. The festival was free.',
+  e24:'<span class="n">2</span> Season package <span class="amt" id="amt-pkg">$1,499</span>',
+  e25:'All three include <strong>training twice a week</strong> &mdash; one weekly turf session focused on technical development and one <strong>futsal session per week</strong>. In March and April both sessions are on turf and there is no futsal; futsal resumes in May. The uniform kit is paid separately in step 3. The <strong>half season</strong> runs from September 25, 2026 through February 2027 and closes after the Winter One-Day Challenge. <strong class="deadline-note">Your package payment must be completed by <span class="deadline-date"></span>.</strong>',
+  e60:'Half season',
+  e61:'$799<small>or $180 a month</small>',
+  e62:'Choose how to pay the half season',
+  e63:'Both options cover exactly the same thing &mdash; only the way you pay changes. Pick one and use its button below.',
+  e64:'Five monthly payments', e65:'$180<small>a month x 5</small>',
+  e66:'One-time payment', e67:'$799<small>single payment</small>',
+  e26:'Complete step 1 first', e27:'Full season',
+  e28:'$1,499<small>single payment</small>',
+  e29:'Monthly', e30:'$180<small>per month</small>',
+  e31:'Your charge schedule',
+  e32:'The monthly package is charged on the same day you buy it and then on the same day of each month. Enter the date you will make the purchase and we will show you the 10 exact dates.',
+  e33:'Package purchase date', e34:'I have already made the package payment',
+  e35:'<span class="n">3</span> Uniform kit <span class="amt" id="amt-uni">$175</span>',
+  e36:'The kit has a <strong>separate cost of $175</strong> and is not included in any package. Choose your sizes below and then pay.',
+  e37:'Complete step 2 first', e38:'Team kit',
+  e39:'Two game jerseys, one pair of shorts and one pair of socks. Required for every enrolled player.',
+  e40:'$175<small>one-time</small>',
+  e41:'Jersey size', e42:'Shorts size', e43:'Sock size',
+  e44:'Both jerseys in the kit are made in the size you choose. <strong>If there is any sizing problem, write to contact@example.com</strong> and we will sort it out with you.',
+  e45:'Need extra pieces?',
+  e46:'Extra jerseys, shorts, socks and goalkeeper jerseys are available beyond the standard kit. To order any of them, write to <a href="mailto:contact@example.com" style="color:var(--burgundy);border-bottom:1px solid var(--yellow);text-decoration:none;">contact@example.com</a> and we will confirm prices and availability before placing the season order.',
+  e47:'Uniform total',
+  e48:'<strong>Last step:</strong> send your package and sizes to the club so we can place the uniform order.',
+  e49:'I have already paid for the uniform and sent my sizes',
+  e50:'All three payments are complete',
+  e51:'Thank you. We will confirm the spot and the uniform order by email. The season runs from September 25, 2026 to August 7 and 8, 2027, with training on Fridays and Sundays from 5:00 to 8:00 p.m. &mdash; one futsal session and one on turf. In March and April both sessions are on turf and there is no futsal; futsal resumes in May. We will send the details once venues are confirmed. Any questions: <a href="mailto:contact@example.com" style="color:var(--burgundy);">contact@example.com</a>',
+  e52:'<strong>Why three payments?</strong> The registration fee secures the spot straight away, the package is charged separately because the monthly option is recurring, and the uniform is paid last so sizes are confirmed before the order goes to the supplier. Keeping them separate makes every amount exact and means nothing is charged twice.',
+  e53:'<strong>Sizes.</strong> Sizes are used to place the season order, so later changes depend on availability. If something does not fit, write to <a href="mailto:contact@example.com" style="color:var(--burgundy);">contact@example.com</a> and we will sort it out with you.',
+  e54:'<span aria-hidden="true">&larr;</span> <span>Back to the main page</span>',
+
+  lang_group:'Language',
+
+  /* strings written by script */
+  js_pkg_monthly:'Season package — Monthly',
+  js_pkg_season:'Season package — Full season',
+  js_pkg_half_monthly:'Season package — Half season, monthly',
+  js_pkg_half_once:'Season package — Half season, one payment',
+  js_done_reg:'I have already made the {m} registration payment',
+  js_d_season:'One-time payment covering the full season. Saves {a} versus the monthly plan.',
+  js_d_monthly:'{m} is charged on the same day you buy the package and then on the same day of each month for {n} months — {t} in total. You can cancel any time from your Vagaro account.',
+  js_btn_reg:'Pay the registration fee — {m}',
+  js_btn_pkg_monthly:'Start the monthly payment',
+  js_btn_pkg_season:'Pay for the full season',
+  js_btn_half_monthly:'Pay the half season month to month — {m}/mo',
+  js_btn_half_once:'Pay the half season in one payment — {m}',
+  js_d_half:'September 25, 2026 through February 2027 — closes after the Winter One-Day Challenge. Two ways to pay: {m} a month for {n} months ({t} total) or {o} in a single payment.',
+  js_d_half_monthly:'{m} is charged on the same day you buy the package and then on the same day of each month for {n} months — {t} in total. You can cancel any time from your Vagaro account.',
+  js_d_half_once:'One-time payment covering the full half season. Saves {a} versus paying month to month.',
+  js_btn_uni:'Pay for the uniform — {m}',
+  js_btn_uni_sizes:'Choose all sizes to continue',
+  js_btn_details:'Complete the player details above',
+  js_btn_nolink:'Payment link not configured',
+  js_btn_save:'Send my details to the club',
+  js_btn_saved:'Details sent',
+  js_st_details:'Please complete the player details above first.',
+  js_st_sizes:'Please choose all three uniform sizes first.',
+  js_st_offline:'Not connected yet — email your sizes to contact@example.com',
+  js_st_sending:'Sending…',
+  js_st_sent:'Sent — thank you. We have your package and your sizes.',
+  js_charges_total:'{n} charges of {m} — {t} in total.',
+  js_size_select:'Select the size',
+  js_st_wait:'Please wait a few seconds before sending again.',
+  js_st_check:'Please check the player details and try again.',
+  js_st_badsize:'The selected sizes are not valid.',
+  js_st_badpkg:'The selected package is not valid.',
+  js_st_badplan:'The payment option is not valid.',
+  js_st_captcha:'Security verification failed. Please try again.',
+  js_st_ok:'Request sent to the club.',
+  js_per_month:'/mo'
+  };
+
+  var ES_JS = {
+  lang_group:'Idioma',
+  js_pkg_monthly:'Paquete de temporada — Mensual',
+  js_pkg_season:'Paquete de temporada — Temporada completa',
+  js_pkg_half_monthly:'Paquete de temporada — Media temporada, mes a mes',
+  js_pkg_half_once:'Paquete de temporada — Media temporada, un solo pago',
+  js_done_reg:'Ya realicé el pago de inscripción de {m}',
+  js_d_season:'Un solo pago que cubre toda la temporada. Ahorra {a} frente al plan mensual.',
+  js_d_monthly:'{m} se cobra el mismo día en que usted compra el paquete y luego el mismo día de cada mes durante {n} meses — {t} en total. Puede cancelar cuando quiera desde su cuenta de Vagaro.',
+  js_btn_reg:'Pagar la cuota de inscripción — {m}',
+  js_btn_pkg_monthly:'Iniciar el pago mensual',
+  js_btn_pkg_season:'Pagar la temporada completa',
+  js_btn_half_monthly:'Pagar la media temporada mes a mes — {m} al mes',
+  js_btn_half_once:'Pagar la media temporada en un solo pago — {m}',
+  js_d_half:'Del 25 de septiembre de 2026 a febrero de 2027 — cierra después del Reto de un Día — Invierno. Dos formas de pagar: {m} al mes durante {n} meses ({t} en total) o {o} en un solo pago.',
+  js_d_half_monthly:'{m} se cobra el mismo día en que usted compra el paquete y luego el mismo día de cada mes durante {n} meses — {t} en total. Puede cancelar cuando quiera desde su cuenta de Vagaro.',
+  js_d_half_once:'Un solo pago que cubre toda la media temporada. Ahorra {a} frente al pago mes a mes.',
+  js_btn_uni:'Pagar el uniforme — {m}',
+  js_btn_uni_sizes:'Elija todas las tallas para continuar',
+  js_btn_details:'Complete los datos del jugador arriba',
+  js_btn_nolink:'Enlace de pago no configurado',
+  js_btn_save:'Enviar mis datos al club',
+  js_btn_saved:'Datos enviados',
+  js_st_details:'Primero complete los datos del jugador arriba.',
+  js_st_sizes:'Primero elija las tres tallas del uniforme.',
+  js_st_offline:'Aún no está conectado — envíe sus tallas por correo a contact@example.com',
+  js_st_sending:'Enviando…',
+  js_st_sent:'Enviado — gracias. Ya tenemos su paquete y sus tallas.',
+  js_charges_total:'{n} cobros de {m} — {t} en total.',
+  js_size_select:'Seleccione la talla',
+  js_st_wait:'Espere unos segundos antes de volver a enviar.',
+  js_st_check:'Revise los datos del jugador e inténtelo de nuevo.',
+  js_st_badsize:'Las tallas seleccionadas no son válidas.',
+  js_st_badpkg:'La opción seleccionada no es válida.',
+  js_st_badplan:'La opción de pago no es válida.',
+  js_st_captcha:'No se pudo validar la solicitud de seguridad. Inténtelo de nuevo.',
+  js_st_ok:'Solicitud enviada al club.',
+  js_per_month:'/mes'
+  };
+
+  var ES = {}, lang = 'en', oyentes = [];
+  var root = document.getElementById('fsa-pay');
+
+  function leerPref(){ try { return localStorage.getItem('fsaLang'); } catch(e){ return null; } }
+  function guardarPref(v){ try { localStorage.setItem('fsaLang', v); } catch(e){} }
+  function cada(sel, fn){ if(root) Array.prototype.forEach.call(root.querySelectorAll(sel), fn); }
+
+  function capturar(){
+    cada('[data-i18n]',    function(el){ ES[el.getAttribute('data-i18n')]    = el.innerHTML; });
+    cada('[data-i18n-ph]', function(el){ ES[el.getAttribute('data-i18n-ph')] = el.getAttribute('placeholder') || ''; });
+    cada('[data-i18n-al]', function(el){ ES[el.getAttribute('data-i18n-al')] = el.getAttribute('aria-label') || ''; });
+    for(var k in ES_JS){ if(Object.prototype.hasOwnProperty.call(ES_JS,k)) ES[k] = ES_JS[k]; }
+  }
+
+  function t(clave, vars){
+    var v = (lang === 'es' ? ES[clave] : EN[clave]);
+    if(v === undefined || v === null) v = (lang === 'es' ? EN[clave] : ES[clave]);
+    if(v === undefined || v === null) return '';
+    if(vars){
+      v = v.replace(/\{(\w+)\}/g, function(m,k){
+        return (vars[k] === undefined || vars[k] === null) ? m : vars[k];
+      });
+    }
+    return v;
+  }
+
+  function aplicarMarcadoConfiable(el, html){
+    /* These strings come only from the fixed bilingual dictionary or the
+       original static Spanish markup captured at startup. They are never
+       populated from form fields or network responses. */
+    el.innerHTML = html;
+  }
+
+  function pintar(){
+    cada('[data-i18n]', function(el){ var v = t(el.getAttribute('data-i18n')); if(v !== '') aplicarMarcadoConfiable(el, v); });
+    cada('[data-i18n-ph]', function(el){ var v = t(el.getAttribute('data-i18n-ph')); if(v !== '') el.setAttribute('placeholder', v); });
+    cada('[data-i18n-al]', function(el){ var v = t(el.getAttribute('data-i18n-al')); if(v !== '') el.setAttribute('aria-label', v); });
+    if(root){
+      root.setAttribute('lang', lang);
+      cada('.lang-btn', function(b){
+        b.setAttribute('aria-pressed', b.getAttribute('data-lang') === lang ? 'true' : 'false');
+      });
+      var g = root.querySelector('.lang-switch');
+      if(g) g.setAttribute('aria-label', t('lang_group'));
+    }
+    for(var i = 0; i < oyentes.length; i++){ try { oyentes[i](lang); } catch(e){} }
+  }
+
+  function set(l){ lang = (l === 'es') ? 'es' : 'en'; guardarPref(lang); pintar(); }
+
+  capturar();
+  lang = (leerPref() === 'es') ? 'es' : 'en';   /* default: English */
+  pintar();                                     /* aplica el idioma inicial */
+
+  if(root){
+    root.addEventListener('click', function(e){
+      var b = e.target.closest ? e.target.closest('.lang-btn') : null;
+      if(!b || !root.contains(b)) return;
+      e.preventDefault();
+      set(b.getAttribute('data-lang'));
+    });
+  }
+
+  return {
+    t: t, lang: function(){ return lang; }, es: function(){ return lang === 'es'; },
+    set: set, onChange: function(fn){ oyentes.push(fn); }, apply: pintar
+  };
+})();
+
+(function(){
+  /* ========= CONFIGURACIÓN: enlaces de pago separados ========= */
+  var CONFIG = {
+    /* CLIENT-SIDE HARDENING. Security-critical checks must also exist in the
+       Google Apps Script endpoint; browser code is never a trust boundary. */
+    SECURITY : {
+      allowedPaymentHosts : ['www.vagaro.com', 'vagaro.com'],
+      allowedParentOrigins: ['https://example.com', 'https://www.example.com'],
+      submitCooldownMs    : 15000,
+      maxNameLength       : 100,
+      maxEmailLength      : 254
+    },
+
+    /* ===== FECHA LÍMITE DE PAGO / PAYMENT DEADLINE =====
+       Escriba la fecha en formato AAAA-MM-DD, por ejemplo "2026-09-25".
+       Se muestra sola en inglés y en español. Mientras quede vacía (""),
+       la frase de la fecha límite NO aparece en la página.
+       Enter the date as YYYY-MM-DD, e.g. "2026-09-25". It is shown
+       automatically in English and Spanish. While it is empty (""), the
+       deadline sentence is hidden. */
+    PAYMENT_DEADLINE : "",
+
+    /* Enlaces de pago de Vagaro. Cada uno abre en una pestaña nueva; en esta
+       página no se cobra nada. Las claves "season" y "monthly" coinciden con
+       el valor del botón de paquete seleccionado, así que elegir un paquete
+       cambia el enlace de pago sin ninguna configuración extra.
+
+       IMPORTANTE: los montos que cobra Vagaro se configuran en Vagaro.
+       Al cambiar los precios acá hay que actualizar también cada producto
+       en Vagaro: inscripción $50, temporada completa $1,499,
+       mensual $180 x 10 meses, media temporada $180 x 5 meses o $799,
+       y uniforme $175. */
+    PAY_LINKS : {
+      registration : "https://www.vagaro.com/cl/YOUR_PAYMENT_LINK_ID",  // Inscripción — $50 pago único
+      season       : "https://www.vagaro.com/cl/YOUR_PAYMENT_LINK_ID",  // Temporada completa 2026/27 — $1,499
+      monthly      : "https://www.vagaro.com/cl/YOUR_PAYMENT_LINK_ID",  // Mensual — $180/mes x 10 meses
+
+      /* ===== MEDIA TEMPORADA — sus dos enlaces de pago =====
+         Cada opción tiene su propio botón en la página, así que cada una lleva
+         su propio enlace de Vagaro.
+         HALF SEASON — the two purchase links. Each option has its own button,
+         so each one carries its own Vagaro link. */
+      half_monthly : "https://www.vagaro.com/cl/YOUR_PAYMENT_LINK_ID",  // Media temporada mes a mes — $180/mes x 5 meses = $900
+      half_once    : "https://www.vagaro.com/cl/YOUR_PAYMENT_LINK_ID",  // Media temporada en un solo pago — $799
+
+      uniform      : "https://www.vagaro.com/cl/YOUR_PAYMENT_LINK_ID"   // Kit de uniforme — $175
+    },
+
+    /* Dónde se guardan los datos de inscripción. Es la misma URL de la
+       aplicación web de Google Apps Script que usa el formulario del sitio. */
+    SHEET_URL             : "YOUR_WEB_APP_URL",
+
+    /* La misma clave SITE de reCAPTCHA v3 del sitio principal.
+       La clave SECRETA vive en el Apps Script, nunca acá. */
+    RECAPTCHA_SITE_KEY    : "YOUR_RECAPTCHA_SITE_KEY"
+  };
+
+  /* ========= PRECIOS — deben coincidir con el sitio principal ========= */
+  var PRECIO = {
+    INSCRIPCION       : 50,
+    TEMPORADA         : 1499,
+    MENSUAL           : 180,
+    MESES_FACTURACION : 10,
+    /* Media temporada: 25 de septiembre de 2026 → febrero de 2027, cierra
+       después del Reto de un Día — Invierno. Dos formas de pagar.
+       Half season: September 25, 2026 → February 2027, closing after the
+       Winter One-Day Challenge. Two ways to pay. */
+    MEDIA_MENSUAL     : 180,
+    MEDIA_MESES       : 5,
+    MEDIA_UNICO       : 799,
+    UNIFORME          : 175
+  };
+  PRECIO.MENSUAL_TOTAL = PRECIO.MENSUAL * PRECIO.MESES_FACTURACION;   // 1800
+  PRECIO.AHORRO        = PRECIO.MENSUAL_TOTAL - PRECIO.TEMPORADA;     // 301
+  PRECIO.MEDIA_TOTAL   = PRECIO.MEDIA_MENSUAL * PRECIO.MEDIA_MESES;   // 900
+  PRECIO.MEDIA_AHORRO  = PRECIO.MEDIA_TOTAL - PRECIO.MEDIA_UNICO;     // 101
+
+  /* ========= TEMPORADA ========= */
+  var TEMPORADA = {
+    inicioTexto : '25 de septiembre de 2026',
+    finTexto    : '7 y 8 de agosto de 2027'
+  };
+
+  var MESES = ['enero','febrero','marzo','abril','mayo','junio',
+               'julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  var MESES_EN = ['January','February','March','April','May','June',
+                  'July','August','September','October','November','December'];
+
+  var I = PAY_I18N, T = PAY_I18N.t;
+
+  var root = document.getElementById('fsa-pay');
+  if(!root) return;
+  var $  = function(s){ return root.querySelector(s); };
+  var $$ = function(s){ return Array.prototype.slice.call(root.querySelectorAll(s)); };
+  var money = function(n){ return '$' + Number(n).toLocaleString('en-US'); };
+
+  function cleanText(value, maxLen){
+    return String(value == null ? '' : value)
+      .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '')
+      .replace(/[ \t\r\n]+/g, ' ').trim().slice(0, maxLen);
+  }
+  function validEmail(value){
+    var v = cleanText(value, CONFIG.SECURITY.maxEmailLength);
+    return v.length >= 3 && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(v);
+  }
+  function allowedAgeGroup(value){
+    return ['U9','U11','U12','U13','U14','U15','Secundaria'].indexOf(value) !== -1;
+  }
+  function allowedSize(value){
+    return TALLAS.camiseta.indexOf(value) !== -1 || TALLAS.medias.indexOf(value) !== -1;
+  }
+  function safePaymentUrl(value){
+    var v = (typeof value === 'string') ? value.trim() : '';
+    if(!/^https:\/\//i.test(v)) return '';
+    try{
+      var u = new URL(v);
+      if(u.protocol.toLowerCase() !== 'https:') return '';
+      if(CONFIG.SECURITY.allowedPaymentHosts.indexOf(u.hostname.toLowerCase()) === -1) return '';
+      return u.toString();
+    }catch(e){ return ''; }
+  }
+
+  /* Devuelve el enlace de pago de un paso, o '' si no está configurado.
+     Solo cuenta como configurado un enlace https:// absoluto, y un bloque
+     PAY_LINKS ausente nunca puede tumbar el resto de la página. */
+  function payLink(key){
+    return safePaymentUrl((CONFIG.PAY_LINKS || {})[key]);
+  }
+
+  /* Comprobación de arranque. Abra la consola del navegador en esta página
+     para ver con qué enlaces de pago cargó la copia publicada. */
+  (function revisarEnlaces(){
+    var faltan = ['registration','season','monthly','half_monthly','half_once','uniform']
+                   .filter(function(k){ return !payLink(k); });
+    if(faltan.length) console.warn('5SAC inscripción — enlace de pago sin configurar: ' + faltan.join(', '));
+    else console.log('5SAC inscripción — los seis enlaces de pago de Vagaro cargaron bien.');
+    if(PRECIO.MENSUAL * PRECIO.MESES_FACTURACION !== PRECIO.MENSUAL_TOTAL)
+      console.warn('5SAC inscripción — el total mensual no cuadra con el ciclo de facturación.');
+    if(PRECIO.MEDIA_MENSUAL * PRECIO.MEDIA_MESES !== PRECIO.MEDIA_TOTAL)
+      console.warn('5SAC inscripción — el total de la media temporada no cuadra con sus 5 cuotas.');
+  })();
+
+  function cargarRecaptcha(){
+    if(!CONFIG.RECAPTCHA_SITE_KEY) return;
+    var s = document.createElement('script');
+    s.src = 'https://www.google.com/recaptcha/api.js?render=' + CONFIG.RECAPTCHA_SITE_KEY;
+    document.head.appendChild(s);
+  }
+  cargarRecaptcha();
+
+  function tokenRecaptcha(cb){
+    if(!CONFIG.RECAPTCHA_SITE_KEY || !window.grecaptcha ||
+       typeof grecaptcha.execute !== 'function'){ cb(''); return; }
+    grecaptcha.ready(function(){
+      try{
+        grecaptcha.execute(CONFIG.RECAPTCHA_SITE_KEY, {action:'register'})
+          .then(function(token){ cb(typeof token === 'string' ? token : ''); },
+                function(){ cb(''); });
+      }catch(e){ cb(''); }
+    });
+  }
+
+
+  var TALLAS = {
+    camiseta:['Juvenil XS','Juvenil S','Juvenil M','Juvenil L','Adulto S','Adulto M','Adulto L','Adulto XL'],
+    medias  :['Juvenil (S/M)','Juvenil (L)','Adulto (S/M)','Adulto (L/XL)']
+  };
+  /* El VALUE del <option> sigue siendo el texto original en español (así la
+     selección no se pierde al cambiar de idioma); solo la etiqueta visible se
+     traduce. Al enviar a la hoja se convierte a inglés con tallaEN().
+     The <option> VALUE stays the original Spanish text so the selection
+     survives a language change; only the visible label is translated. It is
+     converted to English with tallaEN() before being sent to the sheet. */
+  function etiquetaTalla(v){
+    return I.es() ? v : tallaEN(v);
+  }
+  /* La hoja de cálculo siempre recibe la talla en inglés.
+     The spreadsheet always receives the size in English. */
+  function tallaEN(v){
+    return String(v || '').replace(/^Juvenil/, 'Youth').replace(/^Adulto/, 'Adult');
+  }
+  function llenar(sel, tipo){
+    var elegido = sel.value;
+    while(sel.firstChild) sel.removeChild(sel.firstChild);
+    var empty = document.createElement('option');
+    empty.value = '';
+    empty.textContent = T('js_size_select');
+    sel.appendChild(empty);
+    TALLAS[tipo].forEach(function(size){
+      var option = document.createElement('option');
+      option.value = size;
+      option.textContent = etiquetaTalla(size);
+      sel.appendChild(option);
+    });
+    if(TALLAS[tipo].indexOf(elegido) !== -1) sel.value = elegido;
+  }
+
+  function llenarTallas(){
+    llenar($('#sz-shirt'),'camiseta'); llenar($('#sz-shorts'),'camiseta'); llenar($('#sz-socks'),'medias');
+  }
+  llenarTallas();
+
+  /* ===== Calendario de cobros del paquete mensual =====
+     El paquete se cobra el mismo día en que el cliente lo compra y luego el
+     mismo día de cada mes, durante MESES_FACTURACION meses. Si ese día no
+     existe en algún mes (por ejemplo el 31), se cobra el último día del mes. */
+  function fechasDeCobro(fechaCompra, cuotas){
+    var base  = fechaCompra instanceof Date ? fechaCompra : new Date();
+    var total = cuotas || PRECIO.MESES_FACTURACION;
+    var dia   = base.getDate(), out = [];
+    for(var i = 0; i < total; i++){
+      var anio = base.getFullYear(), mes = base.getMonth() + i;
+      anio += Math.floor(mes / 12);
+      mes = ((mes % 12) + 12) % 12;
+      var ultimo = new Date(anio, mes + 1, 0).getDate();
+      out.push(new Date(anio, mes, Math.min(dia, ultimo)));
+    }
+    return out;
+  }
+
+  function fechaLarga(d){
+    return I.es()
+      ? (d.getDate() + ' de ' + MESES[d.getMonth()] + ' de ' + d.getFullYear())
+      : (MESES_EN[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear());
+  }
+
+  function aISO(d){
+    var m = String(d.getMonth()+1).padStart(2,'0'), dd = String(d.getDate()).padStart(2,'0');
+    return d.getFullYear() + '-' + m + '-' + dd;
+  }
+
+  function desdeISO(v){
+    if(!v || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return null;
+    var p = v.split('-').map(function(x){ return parseInt(x,10); });
+    var d = new Date(p[0], p[1]-1, p[2]);
+    if(d.getFullYear() !== p[0] || d.getMonth() !== p[1]-1 || d.getDate() !== p[2]) return null;
+    return d;
+  }
+
+  /* Fecha límite de pago (o null si no está configurada). */
+  var FECHA_LIMITE = desdeISO(String(CONFIG.PAYMENT_DEADLINE || '').trim());
+  if(CONFIG.PAYMENT_DEADLINE && !FECHA_LIMITE)
+    console.warn('5SAC inscripción — PAYMENT_DEADLINE no es una fecha válida (use AAAA-MM-DD).');
+
+  /* Muestra la fecha límite en el idioma activo, o esconde la frase si no hay.
+     Shows the deadline in the active language, or hides the sentence. */
+  function pintarFechaLimite(){
+    $$('.deadline-note').forEach(function(el){
+      if(!FECHA_LIMITE){ el.style.display = 'none'; return; }
+      el.style.display = '';
+      var span = el.querySelector('.deadline-date');
+      if(span) span.textContent = fechaLarga(FECHA_LIMITE);
+    });
+  }
+
+  /* La fecha de compra por defecto es hoy. */
+  var hoy = new Date();
+  $('#fecha-compra').value = aISO(hoy);
+
+  /* cuotas / monto se pasan según el paquete: 10 x $180 en el Mensual,
+     5 x $180 en la Media temporada. */
+  function pintarCobros(cuotas, monto){
+    var n = cuotas || PRECIO.MESES_FACTURACION;
+    var m = monto  || PRECIO.MENSUAL;
+    var d = desdeISO($('#fecha-compra').value) || new Date();
+    var fechas = fechasDeCobro(d, n);
+    var list = $('#lista-cobros');
+    while(list.firstChild) list.removeChild(list.firstChild);
+    fechas.forEach(function(f){
+      var li = document.createElement('li');
+      var dateSpan = document.createElement('span');
+      dateSpan.className = 'cf';
+      dateSpan.textContent = fechaLarga(f);
+      var amountSpan = document.createElement('span');
+      amountSpan.className = 'cm';
+      amountSpan.textContent = money(m);
+      li.appendChild(dateSpan);
+      li.appendChild(amountSpan);
+      list.appendChild(li);
+    });
+    $('#cobros-total').textContent = T('js_charges_total', {
+      n: n, m: money(m), t: money(m * n) });
+    $('#cobros-aviso').textContent = '';
+  }
+  $('#fecha-compra').addEventListener('change', function(){ render(); });
+
+  /* ===== Datos del jugador =====
+     IMPORTANTE: esta función SOLO valida. No reescribe los campos, porque
+     hacerlo mientras el usuario escribe borraba cada espacio al instante
+     (no se podía escribir nombre y apellido).
+     IMPORTANT: this function ONLY validates. It never rewrites the fields —
+     doing that while the user typed deleted every space immediately, so a
+     first and last name could not be entered. */
+  function leerDetalles(){
+    return {
+      player : cleanText($('#pay-player').value, CONFIG.SECURITY.maxNameLength),
+      parent : cleanText($('#pay-parent').value, CONFIG.SECURITY.maxNameLength),
+      email  : cleanText($('#pay-email').value,  CONFIG.SECURITY.maxEmailLength),
+      age    : $('#pay-agegroup').value
+    };
+  }
+  function detallesListos(){
+    var d = leerDetalles();
+    return d.player.length >= 2 && d.parent.length >= 2 &&
+           validEmail(d.email) && allowedAgeGroup(d.age);
+  }
+
+  /* Los espacios sobrantes se limpian solo cuando el usuario sale del campo.
+     Extra spaces are tidied only when the user leaves the field. */
+  [['#pay-player', CONFIG.SECURITY.maxNameLength],
+   ['#pay-parent', CONFIG.SECURITY.maxNameLength],
+   ['#pay-email',  CONFIG.SECURITY.maxEmailLength]].forEach(function(par){
+    var el = $(par[0]);
+    el.addEventListener('blur', function(){
+      var limpio = cleanText(el.value, par[1]);
+      if(el.value !== limpio){ el.value = limpio; render(); }
+    });
+  });
+
+  function ponerBoton(btn, link, texto){
+    var ok = !!link;   // payLink() ya lo validó
+    if(!detallesListos()){
+      btn.href='#'; btn.setAttribute('aria-disabled','true');
+      btn.textContent = T('js_btn_details'); return;
+    }
+    if(!ok){
+      btn.href='#'; btn.setAttribute('aria-disabled','true');
+      btn.textContent = T('js_btn_nolink'); return;
+    }
+    // Los enlaces de Vagaro llevan un token — se pasan tal cual.
+    btn.href = link;
+    btn.setAttribute('aria-disabled','false');
+    btn.textContent = texto;
+  }
+
+  ['#sz-shirt','#sz-shorts','#sz-socks'].forEach(function(s){
+    $(s).addEventListener('change', render);
+  });
+  $$('input[name=pkg]').forEach(function(r){ r.addEventListener('change', render); });
+  $$('input[name=halfplan]').forEach(function(r){ r.addEventListener('change', render); });
+  ['#pay-player','#pay-parent','#pay-email'].forEach(function(s){
+    $(s).addEventListener('input', render);
+  });
+  $('#pay-agegroup').addEventListener('change', render);
+  ['#done-reg','#done-pkg','#done-uni'].forEach(function(s){
+    $(s).addEventListener('change', render);
+  });
+
+  function totalUniforme(){
+    var tallasListas = $('#sz-shirt').value && $('#sz-shorts').value && $('#sz-socks').value;
+    return { total: PRECIO.UNIFORME, listo: !!tallasListas };
+  }
+
+  /* Queda en true cuando el envío al club ya se completó, para que el botón
+     no vuelva a decir "Enviar" al cambiar de idioma. */
+  var datosEnviados = false;
+
+  function render(){
+    var d1 = $('#done-reg').checked,
+        d2 = $('#done-pkg').checked,
+        d3 = $('#done-uni').checked;
+    var eleccion = $('input[name=pkg]:checked').value;   // "season", "monthly" o "half"
+    var mensual  = eleccion === 'monthly';
+    var media    = eleccion === 'half';
+    /* Dentro de la media temporada: "half_monthly" (5 cuotas) o "half_once". */
+    var planMedio = ($('input[name=halfplan]:checked') || {}).value || 'half_monthly';
+    var medioMensual = media && planMedio === 'half_monthly';
+    /* Se cobra mes a mes en el paquete Mensual y en la Media temporada mensual. */
+    var conCuotas = mensual || medioMensual;
+    var cuotas = mensual ? PRECIO.MESES_FACTURACION : PRECIO.MEDIA_MESES;
+    var cuota  = mensual ? PRECIO.MENSUAL : PRECIO.MEDIA_MENSUAL;
+    var u = totalUniforme();
+
+    /* Lo que cuesta el paquete elegido, en total. */
+    var totalPaquete = mensual ? PRECIO.MENSUAL_TOTAL
+                     : media   ? (medioMensual ? PRECIO.MEDIA_TOTAL : PRECIO.MEDIA_UNICO)
+                     :           PRECIO.TEMPORADA;
+
+    /* ---- fecha límite (se vuelve a pintar tras cada cambio de idioma) ---- */
+    pintarFechaLimite();
+
+    /* ---- textos que dependen de los precios ---- */
+    $('#amt-reg').textContent = money(PRECIO.INSCRIPCION);
+    $('#lbl-done-reg').textContent = T('js_done_reg', { m: money(PRECIO.INSCRIPCION) });
+    $('#d-season').textContent = T('js_d_season', {
+      a: money(PRECIO.AHORRO) });
+    $('#d-monthly').textContent = T('js_d_monthly', {
+      m: money(PRECIO.MENSUAL), n: PRECIO.MESES_FACTURACION, t: money(PRECIO.MENSUAL_TOTAL) });
+    $('#d-half').textContent = T('js_d_half', {
+      m: money(PRECIO.MEDIA_MENSUAL), n: PRECIO.MEDIA_MESES,
+      t: money(PRECIO.MEDIA_TOTAL),   o: money(PRECIO.MEDIA_UNICO) });
+    $('#d-half-monthly').textContent = T('js_d_half_monthly', {
+      m: money(PRECIO.MEDIA_MENSUAL), n: PRECIO.MEDIA_MESES, t: money(PRECIO.MEDIA_TOTAL) });
+    $('#d-half-once').textContent = T('js_d_half_once', {
+      a: money(PRECIO.MEDIA_AHORRO) });
+
+    /* ---- resumen de costos ---- */
+    $('#s-reg').textContent   = money(PRECIO.INSCRIPCION);
+    $('#s-pkg').textContent   = money(totalPaquete);
+    $('#s-pkg-label').textContent = media
+      ? (medioMensual ? T('js_pkg_half_monthly') : T('js_pkg_half_once'))
+      : (mensual ? T('js_pkg_monthly') : T('js_pkg_season'));
+    $('#s-uni').textContent   = money(PRECIO.UNIFORME);
+    $('#s-total').textContent = money(PRECIO.INSCRIPCION + totalPaquete + u.total);
+
+    /* ---- paso 1: inscripción ---- */
+    ponerBoton($('#btn-reg'), payLink('registration'),
+      T('js_btn_reg', { m: money(PRECIO.INSCRIPCION) }));
+    $('#step1').classList.toggle('complete', d1);
+    $('#p1').className = 'pstep' + (d1 ? ' done' : ' active');
+
+    /* ---- paso 2: paquete ---- */
+    $('#step2').classList.toggle('locked', !d1);
+    $('#pkg-lock').style.display = d1 ? 'none' : '';
+    $('#pkg-body').style.display = d1 ? '' : 'none';
+    $('#amt-pkg').textContent = conCuotas
+      ? (money(cuota) + T('js_per_month')) : money(totalPaquete);
+
+    /* Las sub-opciones de la media temporada solo se ven si se eligió media. */
+    $('#half-box').style.display = media ? '' : 'none';
+
+    /* El calendario de cobros aplica a los paquetes que se cobran mes a mes:
+       Mensual (10 cuotas) y Media temporada mensual (5 cuotas). */
+    $('#cobros-box').style.display = conCuotas ? '' : 'none';
+    if(conCuotas) pintarCobros(cuotas, cuota);
+
+    /* Media temporada: se oculta el botón único y se muestran los DOS enlaces,
+       uno por cada forma de pagar. En los demás paquetes pasa al revés.
+       Half season: the single button is hidden and the TWO links are shown,
+       one per payment option. Every other package does the opposite. */
+    $('#btn-pkg').style.display    = media ? 'none' : '';
+    $('#half-links').style.display = media ? '' : 'none';
+
+    if(media){
+      ponerBoton($('#btn-half-monthly'), payLink('half_monthly'),
+        T('js_btn_half_monthly', { m: money(PRECIO.MEDIA_MENSUAL) }));
+      ponerBoton($('#btn-half-once'), payLink('half_once'),
+        T('js_btn_half_once', { m: money(PRECIO.MEDIA_UNICO) }));
+    } else {
+      // "eleccion" es el propio valor del botón — "season" o "monthly" — y también
+      // la clave dentro de CONFIG.PAY_LINKS, así que el botón siempre apunta al
+      // pago del paquete que esté seleccionado.
+      ponerBoton($('#btn-pkg'), payLink(eleccion),
+        mensual ? T('js_btn_pkg_monthly') : T('js_btn_pkg_season'));
+    }
+    $('#step2').classList.toggle('complete', d2);
+    $('#p2').className = 'pstep' + (d2 ? ' done' : (d1 ? ' active' : ''));
+
+    /* ---- paso 3: uniforme ---- */
+    $('#step3').classList.toggle('locked', !d2);
+    $('#uni-lock').style.display = d2 ? 'none' : '';
+    $('#uni-body').style.display = d2 ? '' : 'none';
+    $('#uni-total').textContent  = money(u.total);
+    $('#amt-uni').textContent    = money(u.total);
+    if(!u.listo){
+      $('#btn-uni').href = '#';
+      $('#btn-uni').setAttribute('aria-disabled','true');
+      $('#btn-uni').textContent = T('js_btn_uni_sizes');
+    } else {
+      ponerBoton($('#btn-uni'), payLink('uniform'), T('js_btn_uni', { m: money(u.total) }));
+    }
+    $('#step3').classList.toggle('complete', d3);
+    $('#p3').className = 'pstep' + (d3 ? ' done' : (d2 ? ' active' : ''));
+
+    $('#allset').style.display = (d1 && d2 && d3) ? 'block' : 'none';
+
+    /* El botón de envío conserva el estado "enviado" al cambiar de idioma. */
+    $('#btn-save').textContent = datosEnviados ? T('js_btn_saved') : T('js_btn_save');
+  }
+
+  /* Al cambiar de idioma se rellenan las tallas y se vuelve a dibujar todo.
+     On a language change the size lists are rebuilt and everything redraws. */
+  I.onChange(function(){ llenarTallas(); render(); });
+
+  /* ---- enviar paquete y tallas a la hoja de cálculo ---- */
+  var ultimoEnvio = 0;
+  $('#btn-save').addEventListener('click', function(){
+    var status = $('#save-status');
+    function aviso(clave){
+      status.style.color = 'var(--burgundy)';
+      status.textContent = T(clave);
+    }
+    if(Date.now() - ultimoEnvio < CONFIG.SECURITY.submitCooldownMs){ aviso('js_st_wait'); return; }
+
+    /* Limpia los campos una sola vez antes de enviar. */
+    var d = leerDetalles();
+    $('#pay-player').value = d.player;
+    $('#pay-parent').value = d.parent;
+    $('#pay-email').value  = d.email;
+
+    if(!detallesListos()){ aviso('js_st_details'); render(); return; }
+    if(!validEmail(d.email) || !allowedAgeGroup(d.age)){ aviso('js_st_check'); return; }
+
+    var u = totalUniforme();
+    if(!u.listo){ aviso('js_st_sizes'); return; }
+    if(!allowedSize($('#sz-shirt').value) ||
+       !allowedSize($('#sz-shorts').value) || !allowedSize($('#sz-socks').value)){
+      aviso('js_st_badsize'); return;
+    }
+    if(!CONFIG.SHEET_URL){ aviso('js_st_offline'); return; }
+
+    var eleccion  = $('input[name=pkg]:checked').value;
+    if(['season','monthly','half'].indexOf(eleccion) === -1){ aviso('js_st_badpkg'); return; }
+    var planMedio = ($('input[name=halfplan]:checked') || {}).value || 'half_monthly';
+    if(['half_monthly','half_once'].indexOf(planMedio) === -1){ aviso('js_st_badplan'); return; }
+
+    var mensual   = eleccion === 'monthly';
+    var media     = eleccion === 'half';
+    var medioMensual = media && planMedio === 'half_monthly';
+    var conCuotas = mensual || medioMensual;
+    var compra    = desdeISO($('#fecha-compra').value) || new Date();
+
+    /* Descripción del paquete, siempre en inglés para la hoja de cálculo. */
+    var totalPaquete = mensual ? PRECIO.MENSUAL_TOTAL
+                     : media   ? (medioMensual ? PRECIO.MEDIA_TOTAL : PRECIO.MEDIA_UNICO)
+                     :           PRECIO.TEMPORADA;
+    var textoPaquete = mensual
+      ? ('Monthly — ' + money(PRECIO.MENSUAL) + '/mo x ' + PRECIO.MESES_FACTURACION +
+         ' months (' + money(PRECIO.MENSUAL_TOTAL) + ' total)')
+      : media
+        ? (medioMensual
+            ? ('Half season — ' + money(PRECIO.MEDIA_MENSUAL) + '/mo x ' + PRECIO.MEDIA_MESES +
+               ' months (' + money(PRECIO.MEDIA_TOTAL) + ' total)')
+            : ('Half season — ' + money(PRECIO.MEDIA_UNICO) + ' single payment'))
+        : ('Full season — ' + money(PRECIO.TEMPORADA));
+
+    /* La hoja de cálculo se escribe SIEMPRE en inglés, sin importar el idioma
+       que el usuario tenga seleccionado en la página.
+       The spreadsheet is ALWAYS written in English, regardless of the language
+       the user has selected on the page. */
+    var payload = {
+      sheet:            'Enrollments',
+      player_name:      d.player,
+      age_group:        d.age === 'Secundaria' ? 'High School' : d.age,
+      parent_name:      d.parent,
+      email:            d.email,
+      package:          textoPaquete,
+      registration:     PRECIO.INSCRIPCION,
+      package_total:    totalPaquete,
+      billing_months:   mensual ? PRECIO.MESES_FACTURACION : (medioMensual ? PRECIO.MEDIA_MESES : 1),
+      purchase_date:    conCuotas ? aISO(compra) : '',
+      size_shirt:       tallaEN($('#sz-shirt').value),
+      size_shorts:      tallaEN($('#sz-shorts').value),
+      size_socks:       tallaEN($('#sz-socks').value),
+      uniform_kit:      PRECIO.UNIFORME,
+      uniform_total:    u.total,
+      grand_total:      PRECIO.INSCRIPCION + totalPaquete + u.total,
+      paid_reg:         $('#done-reg').checked ? 'Yes' : 'No',
+      paid_package:     $('#done-pkg').checked ? 'Yes' : 'No',
+      paid_uniform:     $('#done-uni').checked ? 'Yes' : 'No',
+      submitted_at:     new Date().toISOString()
+    };
+
+    status.style.color = 'var(--gray-600)';
+    status.textContent = T('js_st_sending');
+
+    tokenRecaptcha(function(token){
+      if(!token){ aviso('js_st_captcha'); return; }
+      payload.recaptcha_token = token;
+      ultimoEnvio = Date.now();
+      // no-cors: Apps Script no devuelve cabeceras CORS, pero el POST sí llega.
+      // try/catch para que un fallo del navegador nunca deje el mensaje
+      // colgado en "Enviando…".
+      try {
+        fetch(CONFIG.SHEET_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        }).then(function(){
+          status.style.color = 'var(--green)';
+          status.textContent = T('js_st_ok');
+          datosEnviados = true;
+          $('#btn-save').setAttribute('aria-disabled','true');
+          $('#btn-save').textContent = T('js_btn_saved');
+        }).catch(function(err){
+          console.error('No se pudo guardar:', err);
+          aviso('js_st_offline');
+        });
+      } catch(err){
+        console.error('No se pudo guardar:', err);
+        aviso('js_st_offline');
+      }
+    });
+  });
+
+  root.addEventListener('click', function(e){
+    var a = e.target.closest ? e.target.closest('a.btn') : null;
+    if(a && a.getAttribute('aria-disabled') === 'true') e.preventDefault();
+  });
+
+  render();
+
+  /* Defense-in-depth: every new-tab link gets explicit opener protection. */
+  Array.prototype.forEach.call(root.querySelectorAll('a[target="_blank"]'), function(a){
+    var rel = (a.getAttribute('rel') || '').split(/\s+/).filter(Boolean);
+    ['noopener','noreferrer'].forEach(function(v){ if(rel.indexOf(v) === -1) rel.push(v); });
+    a.setAttribute('rel', rel.join(' '));
+  });
+})();
+
+/* ===== Puente de tamaño con Wix ===== */
+(function(){
+  var inFrame=false;
+  try{ inFrame = window.self !== window.top; }catch(e){ inFrame=true; }
+  if(!inFrame) return;
+
+  var root=document.getElementById('fsa-pay');
+  if(!root) return;
+
+  var ALLOWED_PARENTS = ['https://example.com','https://www.example.com'];
+
+  function getTarget(){
+    try{
+      var refOrigin = document.referrer ? new URL(document.referrer).origin : '';
+      if(ALLOWED_PARENTS.indexOf(refOrigin) !== -1) return refOrigin;
+    }catch(e){}
+    return '';
+  }
+
+  var TARGET = getTarget();
+  if(!TARGET) return;
+
+  var lastW=0,lastH=0,lastSent=0,scheduled=0;
+
+  function measure(){
+    var body=document.body;
+    var doc=document.documentElement;
+    var rect=root.getBoundingClientRect();
+    var width=Math.ceil(Math.max(
+      root.scrollWidth || 0,
+      root.offsetWidth || 0,
+      rect.width || 0,
+      doc.scrollWidth || 0,
+      body ? body.scrollWidth : 0,
+      doc.clientWidth || 0
+    ));
+    var height=Math.ceil(Math.max(
+      root.scrollHeight || 0,
+      root.offsetHeight || 0,
+      rect.height || 0,
+      doc.scrollHeight || 0,
+      body ? body.scrollHeight : 0,
+      doc.clientHeight || 0
+    ));
+    return {width:width,height:height};
+  }
+
+  function sendSize(force){
+    scheduled=0;
+    var s=measure();
+    if(!s.width || !s.height) return;
+    var changed=(s.width!==lastW || s.height!==lastH);
+    if(!force && !changed) return;
+    var now=Date.now();
+    if(!force && now-lastSent<80) return;
+    lastW=s.width; lastH=s.height; lastSent=now;
+    try{
+      window.parent.postMessage({fsa:'size',width:s.width,height:s.height},TARGET);
+      /* Backward compatibility with existing Wix listeners. */
+      window.parent.postMessage({fsa:'height',value:s.height,width:s.width},TARGET);
+    }catch(e){}
+  }
+
+  function requestSize(force){
+    if(scheduled) return;
+    scheduled=requestAnimationFrame(function(){ sendSize(!!force); });
+  }
+
+  function watchFonts(){
+    try{
+      if(document.fonts && document.fonts.ready) document.fonts.ready.then(function(){ requestSize(true); });
+    }catch(e){}
+  }
+
+  window.addEventListener('load',function(){
+    requestSize(true);
+    watchFonts();
+  });
+  window.addEventListener('resize',function(){ requestSize(true); },{passive:true});
+  window.addEventListener('orientationchange',function(){ setTimeout(function(){requestSize(true);},120); },{passive:true});
+
+  if(window.ResizeObserver){
+    try{
+      var ro=new ResizeObserver(function(){ requestSize(false); });
+      ro.observe(root);
+      if(document.documentElement) ro.observe(document.documentElement);
+    }catch(e){}
+  }
+
+  if(window.MutationObserver){
+    try{
+      var mo=new MutationObserver(function(){ requestSize(false); });
+      mo.observe(root,{subtree:true,childList:true,attributes:true,characterData:true});
+    }catch(e){}
+  }
+
+  root.addEventListener('change',function(){ setTimeout(function(){requestSize(true);},60); },true);
+  root.addEventListener('input',function(){ requestSize(false); },true);
+  root.addEventListener('click',function(){ setTimeout(function(){requestSize(true);},80); },true);
+
+  [0,100,300,700,1200,2000,3500,5000].forEach(function(ms){
+    setTimeout(function(){ requestSize(true); },ms);
+  });
+
+  /* Wix can finish sizing/reflowing after observers fire; this low-frequency fallback
+     catches those changes without creating a continuous resize loop. */
+  var lastCheck=0;
+  setInterval(function(){
+    var now=Date.now();
+    if(now-lastCheck<1200) return;
+    lastCheck=now;
+    requestSize(false);
+  },1500);
+
+  requestSize(true);
+})();
+
+/* ===== Enlaces entre marcos ===== */
+(function(){
+  var SITE_URL = '';
+  var ALLOWED_SITE_ORIGINS = ['https://example.com','https://www.example.com'];
+
+  var inFrame=false; try{inFrame=window.self!==window.top;}catch(e){inFrame=true;}
+  if(!inFrame) return;
+  function raizDelSitio(){
+    if(SITE_URL){
+      try{
+        var configured = new URL(SITE_URL);
+        if(configured.protocol === 'https:' && ALLOWED_SITE_ORIGINS.indexOf(configured.origin) !== -1){
+          return configured.origin.replace(/\/+$/,'');
+        }
+      }catch(e){}
+    }
+    try{
+      if(document.referrer){
+        var refOrigin = new URL(document.referrer).origin;
+        if(ALLOWED_SITE_ORIGINS.indexOf(refOrigin) !== -1) return refOrigin;
+      }
+    }catch(e){}
+    return '';
+  }
+  function corregirEnlaces(){
+    var r = raizDelSitio();
+    Array.prototype.forEach.call(document.querySelectorAll('a[href^="/"]:not([href^="//"])'), function(a){
+      if(a.dataset.xfixed==='1') return;
+      a.setAttribute('target','_top');
+      if(r){ a.setAttribute('href', r + a.getAttribute('href')); }
+      else { a.addEventListener('click', function(e){ e.preventDefault();
+        try{ window.top.location.href = document.referrer || '/'; }
+        catch(err){ window.open(document.referrer || '/', '_top'); } }); }
+      a.dataset.xfixed='1';
+    });
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', corregirEnlaces);
+  else corregirEnlaces();
+  setTimeout(corregirEnlaces, 800);
+})();
+</script>
